@@ -5,7 +5,8 @@ const c = canvas.getContext('2d')
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
-const gravity = 0.5
+const gravity = 0.45
+const drag = 0.8
 const maxVelocity = 7
 
 
@@ -25,6 +26,32 @@ class Player {
         this.grounded = false
         this.jumps = 0
     }
+
+    moveRight() {
+        if(player.velocity.x == 7){
+            player.velocity.x =7
+        }
+        else if(player.velocity.x > 3){
+            player.velocity.x += 2
+        }
+        else{
+            player.velocity.x += 3
+        }
+    }
+    moveLeft() {
+        if(player.velocity.x == -7){
+            player.velocity.x = -7
+        }
+        else if(player.velocity.x <= -3){
+            player.velocity.x -= 2
+        }
+        else{
+            player.velocity.x -= 3
+        }
+    }
+
+    
+
     draw() {
         c.fillStyle = 'red'
         c.fillRect(this.position.x,this.position.y, this.width, this.height)
@@ -34,6 +61,7 @@ class Player {
         
         this.position.y += this.velocity.y
         this.position.x += this.velocity.x
+        this.velocity.x = this.velocity.x * drag
 
         
         if(this.position.y + this.height + this.velocity.y <= canvas.height){
@@ -43,10 +71,11 @@ class Player {
             this.velocity.y = 0
             this.grounded = true
         }
+        
         this.draw()
 
 
-        
+        console.log(this.position.x)
     }
 
 }
@@ -58,17 +87,30 @@ class Platform {
             x,
             y
         }
+        this.velocity = {
+            x,
+            y
+        }
 
         this.width = 200
         this.height = 20
-    }
+    }        
+
     draw() {
         c.fillStyle = 'blue'
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
+    update() {
+        
+        
+        this.position.y += this.velocity.y
+        this.position.x += this.velocity.x
+    }
 }
 
 
+    
+        
 
 
 const player = new Player()
@@ -91,6 +133,9 @@ const keys = {
 
 let scrollOffset = 0
 
+
+
+
 function animate() {
     requestAnimationFrame(animate)
     c.clearRect(0,0,canvas.width,canvas.height)
@@ -100,36 +145,38 @@ function animate() {
         platform.draw()
     })
 
+
+
     //player left right movement
     if(keys.right.pressed && player.position.x < 400){
-        player.velocity.x = 5
+        player.moveRight()
         scrollOffset += 5
     }
     else if(keys.left.pressed && player.position.x > 100){
-        player.velocity.x = -5
+        player.moveLeft()
         scrollOffset -=5
     }
     else {
-        player.velocity.x = 0
         if (keys.right.pressed){
+            player.moveRight()
             platforms.forEach((platform) => {
-                platform.position.x -= 5
+                platform.velocity.x = player.velocity.x * 2
             })
         
             
         }
         else if (keys.left.pressed){
+            player.moveLeft()
             platforms.forEach((platform) => {
-                platform.position.x += 5
+                    platform.velocity.x = player.velocity.x * 2
+                
+                
             })
         }
     }
 
-    //jumping code
 
-    
-
-    
+    //jumping code/ platform landings   
     platforms.forEach((platform) =>{
         if (player.position.y + player.height <= platform.position.y && player.position.y + player.height + player.velocity.y >= platform.position.y && player.position.x + player.width >= platform.position.x && player.position.x <= platform.position.x + platform.width){
             player.velocity.y = 0
@@ -137,7 +184,7 @@ function animate() {
         }
     })
     if(keys.up.pressed && player.grounded){
-        player.velocity.y = -20
+        player.velocity.y = -10
     }
 
     if (player.grounded){
