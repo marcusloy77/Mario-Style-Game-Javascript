@@ -1,10 +1,10 @@
+import platform from './art/platform.png'
+
+
 const canvas = document.querySelector('canvas')
-
 const c = canvas.getContext('2d')
-
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
-
 const gravity = 0.45
 const drag = 0.8
 const maxVelocity = 7
@@ -96,16 +96,18 @@ class Platform {
         this.height = 20
     }        
 
-    draw() {
-        c.fillStyle = 'blue'
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
     update() {
         
         
         this.position.y += this.velocity.y
         this.position.x += this.velocity.x
     }
+    draw() {
+        c.fillStyle = 'blue'
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
+        
+    }
+    
 }
 
 
@@ -132,8 +134,22 @@ const keys = {
 }
 
 let scrollOffset = 0
+let velocity = 0
 
 
+function increaseSpeed(current) {
+    current = Math.abs(current)
+    if (current >= 7){
+        return 0
+    }
+    if (current >= 3) {
+        return 2
+    }
+    else{
+        return 3
+    }
+
+}
 
 
 function animate() {
@@ -147,33 +163,40 @@ function animate() {
 
 
 
+
     //player left right movement
     if(keys.right.pressed && player.position.x < 400){
-        player.moveRight()
+        velocity = player.velocity.x
+        player.velocity.x += increaseSpeed(player.velocity.x)
         scrollOffset += 5
     }
     else if(keys.left.pressed && player.position.x > 100){
-        player.moveLeft()
+        velocity = player.velocity.x
+        player.velocity.x -= increaseSpeed(player.velocity.x)
         scrollOffset -=5
     }
-    else {
-        if (keys.right.pressed){
-            player.moveRight()
-            platforms.forEach((platform) => {
-                platform.velocity.x = player.velocity.x * 2
-            })
+
+    else{
         
-            
+        player.velocity.x = 0
+
+        if(keys.right.pressed) {
+            for(let i =0; i < platforms.length; i++){
+                platforms[i].position.x -= 7
+            }
+
         }
-        else if (keys.left.pressed){
-            player.moveLeft()
-            platforms.forEach((platform) => {
-                    platform.velocity.x = player.velocity.x * 2
-                
-                
-            })
+        if(keys.left.pressed) {
+            for(let i =0; i < platforms.length; i++){
+                platforms[i].position.x += 7
+            }
+
         }
     }
+    
+    
+    
+
 
 
     //jumping code/ platform landings   
